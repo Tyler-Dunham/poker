@@ -29,3 +29,19 @@ print(result.net, result.stacks)
 `observation` also includes the board, pot, stacks, current street bets, folded seats, button, and public action history. `HandResult` includes per-seat contributions, payouts, net chip change, final stacks, board, action events, and showdown hands. This gives data-collection and learning bots a stable input and a per-hand reward (`result.net[seat]`). Seats and bots stay in the same order across hands; the button moves among players with chips. `game.run(hands)` plays up to that many hands, stopping if only one player has chips.
 
 Run tests with `python3 -m unittest discover -s tests`.
+
+## Poker Mirror & RL Exploiter Web App
+
+Start the dependency-free web studio (`ThreadingHTTPServer` + vanilla HTML/CSS/JS):
+
+```sh
+python3 -m web.server --port 8081
+```
+
+Then open `http://127.0.0.1:8081` to import hand histories or load sample player packs, inspect your 13×13 preflop range matrix, train an RL Exploiter against your behavioral clone, and play interactive hands with live GTO vs. Clone coaching.
+
+Run the web API integration tests:
+
+```sh
+python3 -m unittest tests/test_web_api.py
+```

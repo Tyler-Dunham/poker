@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poker Mirror &amp; RL Exploiter Studio</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Navigation Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand">
+          <span class="brand-suit">♠</span>
+          <div>
+            <div class="brand-title">Poker Mirror</div>
+            <div class="brand-sub">RL Exploiter Studio</div>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" role="tablist">
+          <button class="nav-tab active" data-view="profile" role="tab" aria-selected="true">
+            Profile &amp; Ranges
+          </button>
+          <button class="nav-tab" data-view="rl" role="tab" aria-selected="false">
+            RL Exploit Lab
+          </button>
+          <button class="nav-tab" data-view="play" role="tab" aria-selected="false">
+            Play Yourself
+          </button>
+        </nav>
+      </div>
+
+      <div class="topbar-right">
+        <div class="profile-picker">
+          <label for="profileSelect" class="sr-only">Active Profile</label>
+          <select id="profileSelect" class="select-input">
+            <option value="">Select a profile…</option>
+          </select>
+        </div>
+        <button id="openImportBtn" class="btn btn-primary">+ Import Hands</button>
+      </div>
+    </header>
+
+    <!-- Toast Banner -->
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- VIEW 1: PROFILE & RANGES -->
+      <section id="view-profile" class="view active">
+        <div id="profileEmptyState" class="empty-hero card">
+          <h2>Build Your Poker Mirror</h2>
+          <p>
+            Import your hand history or load a realistic player archetype to fit a behavioral clone,
+            inspect your 13×13 preflop range, and train an RL Exploiter against yourself.
+          </p>
+          <div class="sample-pack-grid" id="emptySampleButtons"></div>
+          <div class="empty-actions">
+            <button id="emptyImportBtn" class="btn btn-primary">Import Hand History (.txt / .json)</button>
+          </div>
+        </div>
+
+        <div id="profileDashboard" class="hidden">
+          <!-- Profile Header + Archetype -->
+          <div class="profile-banner card">
+            <div class="profile-banner-main">
+              <div>
+                <div class="eyebrow">ACTIVE PLAYER CLONE</div>
+                <h1 id="profileTitle" class="profile-name">—</h1>
+              </div>
+              <div class="archetype-pill-wrap">
+                <span id="archetypeBadge" class="badge badge-accent">—</span>
+                <span id="handsCountBadge" class="badge badge-muted">0 hands</span>
+              </div>
+            </div>
+            <p id="archetypeDesc" class="archetype-desc"></p>
+          </div>
+
+          <!-- HUD Stats Strip -->
+          <div class="hud-strip" id="hudStrip"></div>
+
+          <!-- 13x13 Matrix + Inspector / Traits / Positions -->
+          <div class="grid-two-col">
+            <div class="card matrix-card">
+              <div class="card-header">
+                <div>
+                  <h3>13×13 Preflop Range Matrix</h3>
+                  <span class="card-sub">Hover any combo to inspect Raise / Call / Fold frequencies</span>
+                </div>
+                <div class="legend-pills">
+                  <span class="legend-item"><i class="dot dot-raise"></i>Raise</span>
+                  <span class="legend-item"><i class="dot dot-call"></i>Call</span>
+                  <span class="legend-item"><i class="dot dot-fold"></i>Fold</span>
+                </div>
+              </div>
+              <div class="matrix-layout">
+                <div id="rangeMatrix" class="range-matrix" role="grid" aria-label="13 by 13 preflop range matrix"></div>
+                <div id="cellInspector" class="cell-inspector">
+                  <div class="inspector-combo" id="inspectorCombo">AA</div>
+                  <div class="inspector-sub" id="inspectorSub">Hover a cell</div>
+                  <div class="inspector-bars" id="inspectorBars"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stack-col">
+              <div class="card">
+                <div class="card-header">
+                  <h3>Archetype Trait Profile</h3>
+                  <span class="card-sub">Behavioral tendencies</span>
+                </div>
+                <div id="traitBars" class="trait-bars"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h3>Positional Breakdown</h3>
+                  <span class="card-sub">VPIP / PFR / 3-Bet / Hands</span>
+                </div>
+                <div class="table-wrap">
+                  <table class="data-table" id="positionalTable">
+                    <thead>
+                      <tr>
+                        <th>Pos</th>
+                        <th>Hands</th>
+                        <th>VPIP</th>
+                        <th>PFR</th>
+                        <th>3-Bet</th>
+                        <th>BB/100</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: RL EXPLOIT LAB -->
+      <section id="view-rl" class="view">
+        <div class="card rl-toolbar">
+          <div>
+            <h2>RL Exploit Lab</h2>
+            <p class="card-sub">
+              Train a reinforcement learning exploiter against <strong id="rlTargetName">your clone</strong> to uncover EV leaks.
+            </p>
+          </div>
+          <div class="rl-controls">
+            <label class="inline-label" for="episodesSelect">Episodes</label>
+            <select id="episodesSelect" class="select-input">
+              <option value="1000">1,000 (Fast)</option>
+              <option value="2500" selected>2,500 (Standard)</option>
+              <option value="5000">5,000 (Deep)</option>
+            </select>
+            <button id="trainRlBtn" class="btn btn-primary">Train RL Exploiter</button>
+          </div>
+        </div>
+
+        <div id="rlEmptyState" class="card empty-rl">
+          <p>Select a profile and click <strong>Train RL Exploiter</strong> to run self-play exploitability analysis.</p>
+        </div>
+
+        <div id="rlResults" class="hidden">
+          <!-- Summary KPIs -->
+          <div class="kpi-row">
+            <div class="card kpi-card">
+              <div class="kpi-label">EXPLOITABILITY</div>
+              <div class="kpi-value text-raise" id="rlExploitability">—</div>
+              <div class="kpi-sub">bb/100 lost to RL</div>
+            </div>
+            <div class="card kpi-card">
+              <div class="kpi-label">OVERALL GTO SCORE</div>
+              <div class="kpi-value text-call" id="rlOverallScore">—</div>
+              <div class="kpi-sub">out of 100</div>
+            </div>
+            <div class="card kpi-card">
+              <div class="kpi-label">EXPLOITS FOUND</div>
+              <div class="kpi-value" id="rlExploitCount">—</div>
+              <div class="kpi-sub">actionable leaks</div>
+            </div>
+            <div class="card kpi-card">
+              <div class="kpi-label">TRAINING TIME</div>
+              <div class="kpi-value" id="rlTrainingMs">—</div>
+              <div class="kpi-sub">milliseconds</div>
+            </div>
+          </div>
+
+          <!-- Learning Curve + Spot Explorer -->
+          <div class="grid-two-col">
+            <div class="card">
+              <div class="card-header">
+                <h3>RL Learning Curve</h3>
+                <span class="card-sub">Exploiter EV convergence (bb/100)</span>
+              </div>
+              <div id="learningCurveWrap" class="svg-chart-wrap"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Spot Policy Explorer</h3>
+                  <span class="card-sub">Your Clone vs GTO vs RL Exploiter</span>
+                </div>
+                <select id="spotSelect" class="select-input select-sm"></select>
+              </div>
+              <div id="spotComparisonBody" class="spot-comparison"></div>
+            </div>
+          </div>
+
+          <!-- Exploits & Strengths -->
+          <div class="grid-two-col">
+            <div class="card">
+              <div class="card-header">
+                <h3>Where You Lose EV (Exploits Found)</h3>
+                <span class="card-sub">Click Practice to drill the exact spot</span>
+              </div>
+              <div id="exploitsList" class="exploits-list"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>What You Do Well (Strengths)</h3>
+                <span class="card-sub">Solid frequencies close to GTO</span>
+              </div>
+              <div id="strengthsList" class="strengths-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: PLAY YOURSELF -->
+      <section id="view-play" class="view">
+        <div class="card play-toolbar">
+          <div class="play-toolbar-left">
+            <div class="control-group">
+              <label for="opponentModeSelect">Opponent</label>
+              <select id="opponentModeSelect" class="select-input">
+                <option value="clone">Play Yourself (Clone)</option>
+                <option value="rl">Play RL Exploiter</option>
+                <option value="gto">Play GTO</option>
+                <option value="mixed">6-Max Mixed</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="seatsSelect">Table</label>
+              <select id="seatsSelect" class="select-input">
+                <option value="2">Heads-Up (2-Max)</option>
+                <option value="6">6-Max</option>
+              </select>
+            </div>
+            <button id="startGameBtn" class="btn btn-primary">Deal New Table</button>
+            <button id="nextHandBtn" class="btn btn-secondary hidden">Next Hand →</button>
+          </div>
+          <div class="play-toolbar-right">
+            <span id="handsPlayedCounter" class="badge badge-muted">0 hands played</span>
+            <button id="saveToProfileBtn" class="btn btn-accent" disabled>Save Played Hands to Profile</button>
+          </div>
+        </div>
+
+        <div class="play-workspace">
+          <!-- Poker Table + Action Bar -->
+          <div class="table-column">
+            <div class="poker-table-wrap card">
+              <div class="poker-felt">
+                <div class="pot-banner">
+                  <span class="pot-label">POT</span>
+                  <span id="tablePot" class="pot-amount">0</span>
+                </div>
+
+                <div id="boardCards" class="board-cards"></div>
+                <div id="streetBadge" class="street-badge">PREFLOP</div>
+
+                <div id="seatsContainer" class="seats-container"></div>
+              </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="card action-bar" id="actionBar">
+              <div class="action-buttons-row">
+                <button class="btn btn-fold" id="btnFold" data-kind="fold">Fold</button>
+                <button class="btn btn-call" id="btnCallCheck" data-kind="call">Check</button>
+                <button class="btn btn-raise" id="btnBet33">33% Pot</button>
+                <button class="btn btn-raise" id="btnBet66">66% Pot</button>
+                <button class="btn btn-raise" id="btnBetPot">Pot</button>
+                <button class="btn btn-raise" id="btnAllIn">All-In</button>
+              </div>
+              <div class="slider-row">
+                <input type="range" id="betSlider" min="20" max="1000" step="5" value="20" />
+                <input type="number" id="betAmountInput" class="num-input" min="0" step="5" value="20" />
+                <button class="btn btn-raise" id="btnCustomBet">Bet / Raise</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Sidebar: Live Mirror Coach + Action Log -->
+          <div class="coach-column">
+            <div class="card coach-card">
+              <div class="card-header">
+                <h3>Live Mirror Coach</h3>
+                <span class="badge badge-accent" id="coachStreet">PREFLOP</span>
+              </div>
+              <div id="coachBody" class="coach-body">
+                <p class="card-sub">Start a table to see what Your Clone vs GTO would do on every street.</p>
+              </div>
+            </div>
+
+            <div class="card log-card">
+              <div class="card-header">
+                <h3>Hand Action Log</h3>
+                <span id="handNumberBadge" class="card-sub">Hand #0</span>
+              </div>
+              <div id="actionLog" class="action-log"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Import Hands Modal -->
+  <div id="importModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+    <div class="modal-panel card">
+      <div class="modal-header">
+        <h2 id="importModalTitle">Import Hand History</h2>
+        <button id="closeImportBtn" class="icon-btn" aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="sample-section">
+          <div class="eyebrow">1-CLICK SAMPLE PROFILES</div>
+          <div id="modalSampleButtons" class="sample-pack-grid"></div>
+        </div>
+
+        <div class="divider"><span>OR UPLOAD / PASTE YOUR OWN</span></div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="importName">Profile Name</label>
+            <input id="importName" type="text" class="text-input" placeholder="e.g. Hero (25NL)" />
+          </div>
+          <div class="form-field">
+            <label for="importHeroName">Hero Screen Name (optional)</label>
+            <input id="importHeroName" type="text" class="text-input" placeholder="e.g. Hero" />
+          </div>
+        </div>
+
+        <div id="dropZone" class="drop-zone">
+          <input type="file" id="fileInput" accept=".txt,.json,.log" hidden />
+          <p>Drag &amp; drop a <code>.txt</code> or <code>.json</code> hand history file here, or <button type="button" id="browseFileBtn" class="link-btn">browse</button></p>
+        </div>
+
+        <div class="form-field">
+          <label for="importRawText">Raw Hand History</label>
+          <textarea id="importRawText" rows="7" class="textarea-input" placeholder="Paste PokerStars / GGPoker / JSON hand history here…"></textarea>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="appendToCurrent" />
+          <span>Append to currently selected profile (if any)</span>
+        </label>
+      </div>
+
+      <div class="modal-footer">
+        <button id="cancelImportBtn" class="btn btn-secondary">Cancel</button>
+        <button id="submitImportBtn" class="btn btn-primary">Import &amp; Fit Clone</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
